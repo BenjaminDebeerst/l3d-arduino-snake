@@ -8,12 +8,11 @@ Adafruit_NeoPixel neo = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 uint32_t getColorFromWheel(int wheelPos);
 
 uint32_t t = 0;
-uint32_t color_from_user_input = getColorFromWheel(128);
 
 struct Pos {
   uint8_t x,y,z;
 
-  uint16_t to_pixel() { return (z & 0x07) + ((x & 0x07) << 3) + ((y & 0x07) << 6); }
+  uint16_t to_pixel() { return (z % 8) + ((x % 8) << 3) + ((y % 8) << 6); }
 };
 
 enum Direction {
@@ -28,35 +27,42 @@ enum Direction {
 struct Snake {
 
     void forward() {
-       switch(dir) {
-           case P_X:
-               s[(head+1) % 10] = s[head];
-               head = (head+1) % 10;
-               s[head].x = (s[head].x+1) & 0x07;
-               neo.setPixelColor(s[head].to_pixel(), 0xFF,0xFF,0);
-               neo.setPixelColor(s[tail].to_pixel(), 0,0,0);
-               tail = (tail+1) % 10;
-               Serial.print("head is at ");
-               //Serial.print(s[head].x);
-               //Serial.print(s[head].y);
-               Serial.println(s[head].to_pixel());
-               break;
-           case P_Y:
-               break;
-           case P_Z:
-               break;
-           case N_X:
-               break;
-           case N_Y:
-               break;
-           case N_Z:
-               break;
-       }
+        if(forward_counter++ % slowdown == 0){
+            s[(head+1) % 10] = s[head];
+            head = (head+1) % 10;
+            switch(dir) {
+                case P_X:
+                    s[head].x = (s[head].x+1) % 8;
+                    break;
+                case P_Y:
+                    s[head].y = (s[head].y+1) % 8;
+                    break;
+                case P_Z:
+                    s[head].z = (s[head].z+1) % 8;
+                    break;
+                case N_X:
+                    s[head].x = (s[head].x-1) % 8;
+                    break;
+                case N_Y:
+                    s[head].y = (s[head].y-1) % 8;
+                    break;
+                case N_Z:
+                    s[head].z = (s[head].z-1) % 8;
+                    break;
+            }
+            neo.setPixelColor(s[head].to_pixel(), 0xFF,0x66,0);
+            neo.setPixelColor(s[head-1].to_pixel(), 0xFF,0xFF,0);
+            neo.setPixelColor(s[tail].to_pixel(), 0,0,0);
+            tail = (tail+1) % 10;
+        }
+
     }
-    
-    Direction dir = P_X;
-    Pos s[10] { {0,0,0},{1,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0} };
-    uint8_t head = 1;
+
+    Direction dir = P_Z;
+    uint8_t slowdown = 50;
+    uint8_t forward_counter = 0;
+    Pos s[10] { {0,0,0},{0,0,1},{0,0,2},{0,0,3},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0} };
+    uint8_t head = 3;
     uint8_t tail = 0;
 };
 
@@ -85,22 +91,21 @@ void showNewData() {
         Serial.print("This just in ... ");
         Serial.println(receivedChar);
         newData = false;
-        color_from_user_input = getColorFromWheel(receivedChar * 10L);
     }
-    
+
 }
 
 
 void setup() {
-      Serial.begin(9600);
+    Serial.begin(9600);
     Serial.println("*********************************");
     Serial.println("*            SNAKE              *");
     Serial.println("*********************************");
-    
-  // put your setup code here, to run once:
-  neo.begin();
-  neo.setBrightness(8);
-  neo.show();
+
+    // put your setup code here, to run once:
+    neo.begin();
+    neo.setBrightness(8);
+    neo.show();
 }
 
 
@@ -118,7 +123,7 @@ uint32_t getColorFromWheel(int wheelPos)
 
 
 void loop() {
-      recvOneChar();
+    recvOneChar();
     showNewData();
     snake.forward();
     neo.show();
