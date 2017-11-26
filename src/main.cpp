@@ -90,6 +90,14 @@ void showNewData() {
     if (newData == true) {
         Serial.print("This just in ... ");
         Serial.println(receivedChar);
+        switch(receivedChar) {
+            case 'w': snake.dir = N_Y; break;
+            case 's': snake.dir = P_Y; break;
+            case 'a': snake.dir = N_X; break;
+            case 'd': snake.dir = P_X; break;
+            case 'i': snake.dir = P_Z; break;
+            case 'k': snake.dir = N_Z; break;
+        }
         newData = false;
     }
 
