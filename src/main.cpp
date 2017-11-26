@@ -13,7 +13,7 @@ uint32_t color_from_user_input = getColorFromWheel(128);
 struct Pos {
   uint8_t x,y,z;
 
-  uint16_t to_pixel() { return (z & 0x07) + ((y & 0x07) << 3) + ((x & 0x07) << 6); }
+  uint16_t to_pixel() { return (z & 0x07) + ((x & 0x07) << 3) + ((y & 0x07) << 6); }
 };
 
 enum Direction {
@@ -33,7 +33,7 @@ struct Snake {
                s[(head+1) % 10] = s[head];
                head = (head+1) % 10;
                s[head].x = (s[head].x+1) & 0x07;
-               neo.setPixelColor(s[head].to_pixel(), 0xFF,0,0);
+               neo.setPixelColor(s[head].to_pixel(), 0xFF,0xFF,0);
                neo.setPixelColor(s[tail].to_pixel(), 0,0,0);
                tail = (tail+1) % 10;
                Serial.print("head is at ");

@@ -1,0 +1,5 @@
+# the name and folder for the virtualenv
+arduino
+.vscode
+.pioenvs
+.piolibdeps
